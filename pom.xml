@@ -67,6 +67,7 @@
     <module>mongodb</module>
     <!--module>nosqldb</module-->
     <module>redis</module>
+    <module>s4</module>
     <module>voldemort</module>
     <module>distribution</module>
   </modules>
