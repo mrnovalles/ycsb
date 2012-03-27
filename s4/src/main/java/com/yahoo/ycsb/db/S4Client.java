@@ -7,21 +7,32 @@ package com.yahoo.ycsb.db;
 
 import org.apache.s4.client.Driver;
 import org.apache.s4.client.Message;
+import org.apache.s4.ft.TestUtils;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.server.NIOServerCnxn.Factory;
 
+import java.util.List;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
+import java.util.Random;
 import java.util.Set;
 import java.util.Vector;
+import java.util.concurrent.CountDownLatch;
 
 import com.yahoo.ycsb.ByteIterator;
 import com.yahoo.ycsb.DB;
 import com.yahoo.ycsb.DBException;
+import com.yahoo.ycsb.StringByteIterator;
 
 public class S4Client extends com.yahoo.ycsb.DB {
     
     public static final String HOST_PROPERTY = "s4.host";
     public static final String PORT_PROPERTY = "s4.port";
+    public static final String N_PES = "s4.npes" ;
+    public static int numPE;
     private Driver d=null ;
     
     public void init() throws DBException{
@@ -37,7 +48,6 @@ public class S4Client extends com.yahoo.ycsb.DB {
             port =Integer.parseInt("2334");
         }
         String host = props.getProperty(HOST_PROPERTY);
-        System.err.println("About to connect to"+ host + port);
         d = new Driver(host, port);
         try {
             if (!d.init()) {
@@ -55,9 +65,20 @@ public class S4Client extends com.yahoo.ycsb.DB {
             e.printStackTrace();
         }
         
+        numPE = Integer.parseInt(props.getProperty(N_PES));
+        if ( numPE <= 0){
+            numPE = 100;
+        }
+       
+		
     }
     public void cleanup(){
-        try { d.disconnect(); } catch (Exception e) {}
+        try { 
+        	d.disconnect();
+        	TestUtils.stopZookeeperServer(zookeeperServerConnectionFactory);
+        }
+        catch (Exception e) {}
+		
     }
 
     @Override
@@ -72,20 +93,34 @@ public class S4Client extends com.yahoo.ycsb.DB {
      * to the S4 cluster and has "Word" harcoded and will need a word application
      */
     public int insert(String table, String key, HashMap<String, ByteIterator> values) {
-        String string = "{\"string\":\""+table+" "+table+"."+"\"}";
 
-	
-	/* TODO: RawWords should be a command line parameter, may be table name
-	  Closely related to the deployed application.	*/
-        Message m = new Message("RawWords","test.s4.Word", string);
-        try {
-            d.send(m);
-            return 0;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return 1;
-        }
-        
+    	Random rnd = new Random();
+    	
+    	//Note: the . specifies a sentence being sent
+    	String string = String.valueOf(rnd.nextInt(numPE));
+    	String str = "{\"string\":\""+ string +"."+"\"}";
+
+    	/* TODO: RawWords should be a command line parameter, may be table name
+	  	Closely related to the deployed application.	*/
+    	Message m = new Message("RawWords","test.s4.Word", str);
+    	ZooKeeper zk;
+    	try {
+    		zk = TestUtils.createZkClient();
+    		CountDownLatch checkpoint = new CountDownLatch(1);
+    		TestUtils.watchAndSignalCreation("/"+string, checkpoint, zk);
+    		d.send(m);
+    		return 0;
+    	} catch (IOException e) {
+    		e.printStackTrace();
+    		return 1;
+    	} catch (KeeperException e) {
+    		// TODO Auto-generated catch block
+    		e.printStackTrace();
+    	} catch (InterruptedException e) {
+    		// TODO Auto-generated catch block
+    		e.printStackTrace();
+    	}
+    	return 1;
     }
 
     @Override

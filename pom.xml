@@ -56,19 +56,18 @@
   </properties>
 
   <modules>
-    <!--module>build-tools</module-->
+   <!--module>build-tools</module -->
     <module>core</module>
-    <module>hbase</module>
+<!-- <module>hbase</module>
     <module>cassandra</module>
     <module>gemfire</module>
     <module>infinispan</module>
     <module>jdbc</module>
     <module>mapkeeper</module>
     <module>mongodb</module>
-    <!--module>nosqldb</module-->
-    <module>redis</module>
+    <module>redis</module>-->
     <module>s4</module>
-    <module>voldemort</module>
+    <!--<module>voldemort</module> -->
     <module>distribution</module>
   </modules>
 
