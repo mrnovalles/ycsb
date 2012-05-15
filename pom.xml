@@ -65,8 +65,10 @@
     <module>jdbc</module>
     <module>mapkeeper</module>
     <module>mongodb</module>
-    <module>redis</module>-->
-    <module>s4</module>
+    <module>redis</module>
+    <module>s4</module> -->
+    <module>s4backend</module>
+    <module>s4backendidx</module>
     <!--<module>voldemort</module> -->
     <module>distribution</module>
   </modules>

@@ -1,0 +1,1 @@
+bin/ycsb load s4backendidx -P workloads/workloadinsert -p s4.npes=100 -target 250000 -P large.dat -s

@@ -2,6 +2,7 @@
 # Script to run some experiments on a naive 
 # impl of YCSB-S4 binding
 source ~/.bashrc
+#cleans4
 output="/home/valles/programming/YCSB/output-cp"
 bin="/home/valles/programming/YCSB/bin"
 workloads="/home/valles/programming/YCSB/workloads"
@@ -22,27 +23,27 @@ else
 fi
 d=`date +%H%M%S%N`
 CMD="$bin/ycsb $1 s4 -P $workloads/workloadinsert -P $params/large.dat"
-for pe in 1 10 100
+for pe in 10 #10 100
 do
-	s4cluster &
-	sleep 4
-	s4adapter &
-	sleep 4
+	#s4cluster &
+	#sleep 4
+	#s4adapter &
+	#sleep 4
 
-	$CMD -threads 1 -target 1500 -p s4.npes=$pe -s > $output/numPEs$pe-$d
+	echo $CMD -threads 1 -target 1500 -p s4.host=ybcn-svr14 s4.npes=$pe -s > $output/numPEs$pe-$d
+	$CMD -threads 1 -target 1500 -p s4.host=ybcn-svr14 s4.npes=$pe -s > $output/numPEs$pe-$d
 	
-	a=`cat /home/valles/programming/incubator-s4/build/s4-image/s4-core/logs/s4-core/*.log | grep nanos | awk {'print $7'}| wc -l`
+#	a=`cat /home/valles/programming/incubator-s4/build/s4-image/s4-core/logs/s4-core/*.log | grep nanos | awk {'print $7'}| wc -l`
 		
-	if [ "$a" -eq 10000 ]; then
-		echo "All events checkpointed"
-
-	fi
+#	if [ "$a" -eq 10000 ]; then
+#		echo "All events checkpointed"
+#
+#	fi
 	
-	cat /home/valles/programming/incubator-s4/build/s4-image/s4-core/logs/s4-core/*.log | grep nanos | awk {'print $7'} > /home/valles/results/$pe.redis
-	cleans4
+#	cat /home/valles/programming/incubator-s4/build/s4-image/s4-core/logs/s4-core/*.log | grep -E 'ENDTIME|STARTTIME' > /home/valles/results/$pe.log	#cleans4
 	
-	for i in `ps aux | grep s4-core| grep -v 'eclipse|grep'| awk {'print $2'}`
-	do
-		kill -9 $i
-	done
+	#for i in `ps aux | grep s4-core| grep -v 'eclipse|grep'| awk {'print $2'}`
+	#do
+#		kill -9 $i
+#	done
 done
